@@ -511,8 +511,8 @@ thead th { overflow: visible !important; }
   <div class="hf-dd-list" id="dd-list"></div>
 </div>
 <div id="dd-footer" style="display:none;position:fixed;background:#fff;border:1px solid #b8b5ac;border-top:none;border-radius:0 0 6px 6px;z-index:99999;padding:5px 8px;justify-content:flex-end;gap:5px;">
-  <button id="dd-cancel-btn" style="padding:3px 10px;font-size:10px;border-radius:3px;border:.5px solid #c8c6bc;background:#fff;cursor:pointer;">취소</button>
-  <button id="dd-apply-btn" style="padding:3px 10px;font-size:10px;border-radius:3px;border:.5px solid #2D6A4F;background:#2D6A4F;color:#fff;cursor:pointer;">확인</button>
+  <button id="dd-cancel-btn" onclick="closeDd()" style="padding:3px 10px;font-size:10px;border-radius:3px;border:.5px solid #c8c6bc;background:#fff;cursor:pointer;">취소</button>
+  <button id="dd-apply-btn" onclick="ddApply()" style="padding:3px 10px;font-size:10px;border-radius:3px;border:.5px solid #2D6A4F;background:#2D6A4F;color:#fff;cursor:pointer;">확인</button>
 </div>
 <script type="module">
 
@@ -1001,23 +1001,7 @@ function initDdButtons() {
     }
   });
 
-  g('dd-apply-btn').addEventListener('click', function(e) {
-    e.stopPropagation();
-    var col = activeDdCol;
-    if(!col) return;
-    var allCbs = Array.from(g('dd-list').querySelectorAll('.dd-cb'));
-    var checked = allCbs.filter(function(cb){ return cb.checked; }).map(function(cb){ return cb.value; });
-    ddSelected[col] = (checked.length === allCbs.length) ? null : new Set(checked);
-    closeDd();
-    updateHeaderFilters();
-    lastRowsKey = '';
-    refresh();
-  });
-
-  g('dd-cancel-btn').addEventListener('click', function(e) {
-    e.stopPropagation();
-    closeDd();
-  });
+  // 확인/취소는 onclick으로 처리
 
   document.addEventListener('click', function(e) {
     var dd = g('global-dd');
@@ -1027,6 +1011,10 @@ function initDdButtons() {
     if(e.target.closest('.hf-btn')) return;
     closeDd();
   });
+
+  // onclick에서 호출 가능하도록 전역 노출
+  window.ddApply = ddApply;
+  window.closeDd = closeDd;
 }
 
 function openDd(col, btnEl) {
@@ -1055,6 +1043,18 @@ function openDd(col, btnEl) {
     }, 10);
   }
   setTimeout(function(){ g('dd-search').focus(); }, 30);
+}
+
+function ddApply() {
+  var col = activeDdCol;
+  if(!col) return;
+  var allCbs = Array.from(g('dd-list').querySelectorAll('.dd-cb'));
+  var checked = allCbs.filter(function(cb){ return cb.checked; }).map(function(cb){ return cb.value; });
+  ddSelected[col] = (checked.length === allCbs.length) ? null : new Set(checked);
+  closeDd();
+  updateHeaderFilters();
+  lastRowsKey = '';
+  refresh();
 }
 
 function closeDd() {
