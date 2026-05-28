@@ -998,7 +998,7 @@ function initDdButtons() {
     }
   });
 
-  g('dd-apply-btn').addEventListener('mousedown', function(e) {
+  g('dd-apply-btn').addEventListener('click', function(e) {
     e.stopPropagation();
     var col = activeDdCol;
     if(!col) return;
@@ -1024,9 +1024,11 @@ function initDdButtons() {
   document.addEventListener('click', function(e) {
     var dd = g('global-dd');
     if(!dd || !dd.classList.contains('open')) return;
-    if(!e.target.closest('#global-dd') && !e.target.closest('.hf-btn')) {
-      closeDd();
-    }
+    // 적용 버튼이나 dd 안이면 닫지 않음
+    if(e.target.id === 'dd-apply-btn') return;
+    if(e.target.closest('#global-dd')) return;
+    if(e.target.closest('.hf-btn')) return;
+    closeDd();
   });
 }
 
