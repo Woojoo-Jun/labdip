@@ -199,10 +199,11 @@ thead th { overflow: visible !important; }
 .hf-dd-item:hover { background:#f0faf5; }
 .hf-dd-item.all-item { border-bottom:1px solid #e8e6e0; font-weight:600; color:#2D6A4F; }
 .hf-dd-item input[type=checkbox] { accent-color:#2D6A4F; flex-shrink:0; cursor:pointer; }
-.hf-dd-footer { padding:5px 8px; border-top:1px solid #e8e6e0; display:flex; justify-content:flex-end; }
-.hf-dd-btn { padding:3px 10px; font-size:10px; border-radius:3px; border:.5px solid #c8c6bc; background:#fff; cursor:pointer; }
-.hf-dd-btn.apply { background:#2D6A4F; color:#fff; border-color:#2D6A4F; }
 
+
+.hf-dd-footer{padding:5px 8px;border-top:1px solid #e8e6e0;display:flex;justify-content:flex-end;gap:5px;}
+.hf-dd-btn{padding:3px 10px;font-size:10px;border-radius:3px;border:.5px solid #c8c6bc;background:#fff;cursor:pointer;}
+.hf-dd-btn.apply{background:#2D6A4F;color:#fff;border-color:#2D6A4F;}
 </style>
 </head>
 
@@ -983,28 +984,22 @@ function initDdButtons() {
   });
 
   g('dd-list').addEventListener('click', function(e) {
-    var allItem = e.target.closest('.all-item');
-    if(allItem) {
-      var allCb = g('dd-all');
-      if(!allCb) return;
-      // 보이는 항목만 토글 (숨겨진 항목은 기존 상태 유지)
+    if(e.target.id === 'dd-all') {
       var cbs = g('dd-list').querySelectorAll('.dd-cb');
       cbs.forEach(function(cb) {
         var item = cb.closest('.hf-dd-item');
         if(!item || item.style.display !== 'none') {
-          cb.checked = allCb.checked;
+          cb.checked = e.target.checked;
         }
       });
     }
   });
+    }
+    // 체크박스 변경 즉시 필터 적용
+    applyDdFilter();
+  });
 
-  g('dd-apply-btn').addEventListener('click', function(e) {
-    e.stopPropagation();
-    var col = activeDdCol;
-    if(!col) return;
-    var allCbs = Array.from(g('dd-list').querySelectorAll('.dd-cb'));
-    var totalCount = allCbs.length;
-    var checked = allCbs.filter(function(cb){ return cb.checked; }).map(function(cb){ return cb.value; });
+
     // 전체 항목 수와 비교 (검색으로 숨겨진 것 포함한 전체)
     if(checked.length === totalCount) {
       // 전체 체크 = 필터 없음
@@ -1021,16 +1016,36 @@ function initDdButtons() {
     refresh();
   });
 
+  // 확인 버튼 - 필터 적용
+  g('dd-apply-btn').addEventListener('click', function(e) {
+    e.stopPropagation();
+    var col = activeDdCol;
+    if(!col) return;
+    var allCbs = Array.from(g('dd-list').querySelectorAll('.dd-cb'));
+    var checked = allCbs.filter(function(cb){ return cb.checked; }).map(function(cb){ return cb.value; });
+    ddSelected[col] = (checked.length === allCbs.length) ? null : new Set(checked);
+    closeDd();
+    updateHeaderFilters();
+    lastRowsKey = '';
+    refresh();
+  });
+
+  // 취소 버튼 - 그냥 닫기
+  g('dd-cancel-btn').addEventListener('click', function(e) {
+    e.stopPropagation();
+    closeDd();
+  });
+
+  // 바깥 클릭 시 닫기
   document.addEventListener('click', function(e) {
     var dd = g('global-dd');
     if(!dd || !dd.classList.contains('open')) return;
-    // 적용 버튼이나 dd 안이면 닫지 않음
-    if(e.target.id === 'dd-apply-btn') return;
     if(e.target.closest('#global-dd')) return;
     if(e.target.closest('.hf-btn')) return;
     closeDd();
   });
 }
+
 
 function openDd(col, btnEl) {
   var dd = g('global-dd');
@@ -1085,7 +1100,8 @@ function buildDdList(col) {
   <input class="hf-dd-search" id="dd-search" placeholder="검색...">
   <div class="hf-dd-list" id="dd-list"></div>
   <div class="hf-dd-footer">
-    <button class="hf-dd-btn apply" id="dd-apply-btn">적용</button>
+    <button class="hf-dd-btn" id="dd-cancel-btn">취소</button>
+    <button class="hf-dd-btn apply" id="dd-apply-btn">확인</button>
   </div>
 </div>
 </body>
