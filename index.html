@@ -996,9 +996,23 @@ function initDdButtons() {
     e.stopPropagation();
     var col = activeDdCol;
     if(!col) return;
-    var cbs = Array.from(g('dd-list').querySelectorAll('.dd-cb'));
-    var checked = cbs.filter(function(cb){ return cb.checked; }).map(function(cb){ return cb.value; });
-    ddSelected[col] = (checked.length === cbs.length) ? null : new Set(checked);
+    var allCbs = Array.from(g('dd-list').querySelectorAll('.dd-cb'));
+    // 보이는 항목만 체크 상태 반영, 숨겨진 항목은 기존 ddSelected 상태 유지
+    var visibleCbs = allCbs.filter(function(cb){ return cb.closest('.hf-dd-item').style.display !== 'none'; });
+    var hiddenCbs = allCbs.filter(function(cb){ return cb.closest('.hf-dd-item').style.display === 'none'; });
+
+    // 현재 선택 상태 계산
+    var prevSel = ddSelected[col]; // 기존 선택값 (null = 전체)
+    var newSel = new Set(prevSel ? Array.from(prevSel) : allCbs.map(function(cb){ return cb.value; }));
+
+    // 보이는 항목 중 체크된 것 추가, 해제된 것 제거
+    visibleCbs.forEach(function(cb) {
+      if(cb.checked) newSel.add(cb.value);
+      else newSel.delete(cb.value);
+    });
+
+    // 전체 항목 수와 같으면 null(전체선택)로
+    ddSelected[col] = (newSel.size === allCbs.length) ? null : newSel;
     closeDd();
     updateHeaderFilters();
     lastRowsKey = '';
