@@ -1001,6 +1001,7 @@ function initDdButtons() {
     ddSelected[col] = (checked.length === cbs.length) ? null : new Set(checked);
     closeDd();
     updateHeaderFilters();
+    lastRowsKey = '';
     refresh();
   });
 
