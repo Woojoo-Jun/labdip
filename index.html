@@ -165,7 +165,6 @@ tbody td{padding:7px 5px;text-align:center;color:#1a1a18;border:.5px solid #dddb
 .fb-step-body a{color:#2D6A4F}
 .fb-code{background:#f5f4f0;border:.5px solid #dddbd2;border-radius:5px;padding:6px 10px;font-family:monospace;font-size:10px;color:#1a1a18;margin-top:4px;word-break:break-all;line-height:1.6}
 
-/* 엑셀형 드롭다운 필터 */
 .hf-btn {
   width:100%; padding:1px 4px; border:.5px solid #c8c6bc;
   border-radius:3px; font-size:9px; background:#fff;
@@ -199,11 +198,10 @@ thead th { overflow: visible !important; }
 .hf-dd-item:hover { background:#f0faf5; }
 .hf-dd-item.all-item { border-bottom:1px solid #e8e6e0; font-weight:600; color:#2D6A4F; }
 .hf-dd-item input[type=checkbox] { accent-color:#2D6A4F; flex-shrink:0; cursor:pointer; }
+.hf-dd-footer { padding:5px 8px; border-top:1px solid #e8e6e0; display:flex; justify-content:flex-end; gap:5px; }
+.hf-dd-btn { padding:3px 10px; font-size:10px; border-radius:3px; border:.5px solid #c8c6bc; background:#fff; cursor:pointer; }
+.hf-dd-btn.apply { background:#2D6A4F; color:#fff; border-color:#2D6A4F; }
 
-
-.hf-dd-footer{padding:5px 8px;border-top:1px solid #e8e6e0;display:flex;justify-content:flex-end;gap:5px;}
-.hf-dd-btn{padding:3px 10px;font-size:10px;border-radius:3px;border:.5px solid #c8c6bc;background:#fff;cursor:pointer;}
-.hf-dd-btn.apply{background:#2D6A4F;color:#fff;border-color:#2D6A4F;}
 </style>
 </head>
 
@@ -640,7 +638,7 @@ function renderSortTags(){
 }
 function getSorted(rows){if(!sortKeys.length)return rows;return[...rows].sort((a,b)=>{for(const{key,dir}of sortKeys){const va=(a[key]||'').toLowerCase(),vb=(b[key]||'').toLowerCase();if(va<vb)return dir==='asc'?-1:1;if(va>vb)return dir==='asc'?1:-1;}return 0;});}
 
-// ── 필터 (드롭다운 방식) ──────────────────────────────────────────
+// ── 필터 (드롭다운) ──────────────────────────────────────────────
 const DD_COLS = ['brand','season','item','colorname','colorcode','ldip','factory','status'];
 const ddSelected = {};
 DD_COLS.forEach(c => { ddSelected[c] = null; });
@@ -994,29 +992,7 @@ function initDdButtons() {
       });
     }
   });
-    }
-    // 체크박스 변경 즉시 필터 적용
-    applyDdFilter();
-  });
 
-
-    // 전체 항목 수와 비교 (검색으로 숨겨진 것 포함한 전체)
-    if(checked.length === totalCount) {
-      // 전체 체크 = 필터 없음
-      ddSelected[col] = null;
-    } else if(checked.length === 0) {
-      // 전체 해제 = 아무것도 안 보임 (의미없으므로 null 처리)
-      ddSelected[col] = null;
-    } else {
-      ddSelected[col] = new Set(checked);
-    }
-    closeDd();
-    updateHeaderFilters();
-    lastRowsKey = '';
-    refresh();
-  });
-
-  // 확인 버튼 - 필터 적용
   g('dd-apply-btn').addEventListener('click', function(e) {
     e.stopPropagation();
     var col = activeDdCol;
@@ -1030,13 +1006,11 @@ function initDdButtons() {
     refresh();
   });
 
-  // 취소 버튼 - 그냥 닫기
   g('dd-cancel-btn').addEventListener('click', function(e) {
     e.stopPropagation();
     closeDd();
   });
 
-  // 바깥 클릭 시 닫기
   document.addEventListener('click', function(e) {
     var dd = g('global-dd');
     if(!dd || !dd.classList.contains('open')) return;
@@ -1045,7 +1019,6 @@ function initDdButtons() {
     closeDd();
   });
 }
-
 
 function openDd(col, btnEl) {
   var dd = g('global-dd');
@@ -1069,21 +1042,20 @@ function closeDd() {
 }
 
 function buildDdList(col) {
+  var searchEl = g('search');
+  var savedSearch = searchEl ? searchEl.value : '';
+  if(searchEl) searchEl.value = '';
   var vals;
   if(col === 'status') {
     vals = ['Approved','Pending','Cancelled'];
   } else {
-    // 검색창 값 임시 무시 (드롭다운 목록은 전체 기준으로 표시)
-    var searchEl = g('search');
-    var savedSearch = searchEl ? searchEl.value : '';
-    if(searchEl) searchEl.value = '';
     var rows = getFilteredExcept(col);
-    if(searchEl) searchEl.value = savedSearch;
     var seen = {};
     vals = [];
     rows.forEach(function(r){ var v=(r[col]||'').trim(); if(v&&!seen[v]){seen[v]=1;vals.push(v);} });
     vals.sort(function(a,b){ return a.localeCompare(b,'ko'); });
   }
+  if(searchEl) searchEl.value = savedSearch;
   var sel = ddSelected[col];
   var allChk = sel===null ? 'checked' : '';
   var htm = '<div class="hf-dd-item all-item"><input type="checkbox" id="dd-all" '+allChk+'> 전체 선택</div>';
