@@ -167,27 +167,21 @@ tbody td{padding:7px 5px;text-align:center;color:#1a1a18;border:.5px solid #dddb
 
 .hf-btn{width:100%;padding:1px 4px;border:.5px solid #c8c6bc;border-radius:3px;font-size:9px;background:#fff;color:#1a1a18;cursor:pointer;text-align:left;display:flex;align-items:center;justify-content:space-between;box-sizing:border-box;}
 .hf-btn.active{border-color:#2D6A4F;background:#e8f4f0;color:#2D6A4F;font-weight:600;}
-thead th{overflow:visible !important;}
-.th-inner{overflow:visible !important;}
-.th-bot{overflow:visible !important;}
-#global-dd{display:none;position:fixed;background:#fff;border:1px solid #b8b5ac;border-radius:6px 6px 0 0;box-shadow:0 6px 20px rgba(0,0,0,0.2);z-index:99999;min-width:180px;max-width:280px;font-size:11px;}
+thead th{overflow:visible!important;}.th-inner{overflow:visible!important;}.th-bot{overflow:visible!important;}
+#global-dd{display:none;position:fixed;background:#fff;border:1px solid #b8b5ac;border-radius:6px;box-shadow:0 6px 20px rgba(0,0,0,0.2);z-index:99999;min-width:180px;max-width:280px;font-size:11px;}
 #global-dd.open{display:block;}
-#dd-footer{display:none;position:fixed;background:#fff;border:1px solid #b8b5ac;border-top:none;border-radius:0 0 6px 6px;box-shadow:0 6px 20px rgba(0,0,0,0.2);z-index:99999;padding:5px 8px;justify-content:flex-end;gap:5px;}
-#dd-footer.open{display:flex;}
 .hf-dd-search{width:100%;padding:6px 8px;border:none;border-bottom:1px solid #e8e6e0;font-size:11px;outline:none;box-sizing:border-box;}
 .hf-dd-list{max-height:200px;overflow-y:auto;}
-.hf-dd-list::-webkit-scrollbar{width:5px;}
-.hf-dd-list::-webkit-scrollbar-thumb{background:#ccc;border-radius:3px;}
+.hf-dd-list::-webkit-scrollbar{width:5px;}.hf-dd-list::-webkit-scrollbar-thumb{background:#ccc;border-radius:3px;}
 .hf-dd-item{display:flex;align-items:center;gap:7px;padding:5px 10px;cursor:pointer;}
 .hf-dd-item:hover{background:#f0faf5;}
 .hf-dd-item.all-item{border-bottom:1px solid #e8e6e0;font-weight:600;color:#2D6A4F;}
 .hf-dd-item input[type=checkbox]{accent-color:#2D6A4F;flex-shrink:0;cursor:pointer;}
+.hf-dd-footer{padding:5px 8px;border-top:1px solid #e8e6e0;display:flex;justify-content:flex-end;gap:5px;}
 .hf-dd-btn{padding:3px 10px;font-size:10px;border-radius:3px;border:.5px solid #c8c6bc;background:#fff;cursor:pointer;}
 .hf-dd-btn.apply{background:#2D6A4F;color:#fff;border-color:#2D6A4F;}
 
 </style>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 </head>
 
 <!-- 비밀번호 화면 -->
@@ -491,15 +485,7 @@ thead th{overflow:visible !important;}
   </div>
 </div>
 
-<div id="global-dd">
-  <input class="hf-dd-search" id="dd-search" placeholder="검색...">
-  <div class="hf-dd-list" id="dd-list"></div>
-</div>
-<div id="dd-footer">
-  <button class="hf-dd-btn" onclick="closeDd()">취소</button>
-  <button class="hf-dd-btn apply" onclick="ddApply()">확인</button>
-</div>
-<script>
+<script type="module">
 
 // ── 비밀번호 설정 ─────────────────────────────────────────────────
 const PW_HASH = 'bae20ecc7be7f1257e6055671dff828b79c0b6d232015137bd090a81d6b512ca'; // woojoo
@@ -536,6 +522,8 @@ document.getElementById('pw-input').addEventListener('keydown', e => {
   document.getElementById('pw-error').textContent = '';
 });
 
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+import { getFirestore, collection, onSnapshot, doc, setDoc, deleteDoc, getDocs } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
 const g = id => document.getElementById(id);
 
@@ -578,9 +566,9 @@ async function saveChpw(){
 function getFbCfg(){try{return JSON.parse(localStorage.getItem('labdip_fbcfg')||'null')}catch{return null}}
 async function initFb(cfg){
   try{
-    firebase.initializeApp(cfg);
-    db=firebase.firestore();
-    await db.collection('labdip').get();
+    const app=initializeApp(cfg);
+    db=getFirestore(app);
+    await getDocs(collection(db,'labdip'));
     useFirebase=true;
     setFbStatus('connected','클라우드 연결됨');
     g('fb-banner').classList.add('hidden');
@@ -589,7 +577,7 @@ async function initFb(cfg){
 }
 function startSync(){
   if(unsubFn)unsubFn();
-  unsubFn=db.collection('labdip').onSnapshot(snap=>{
+  unsubFn=onSnapshot(collection(db,'labdip'),snap=>{
     data=[];snap.forEach(d=>data.push(d.data()));
     data.sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
     nextId=data.length?Math.max(...data.map(r=>r.id||0))+1:1;
@@ -597,8 +585,8 @@ function startSync(){
   },err=>{setFbStatus('error','동기화 오류');});
 }
 function setFbStatus(type,text){g('fb-status').className='fb-status '+type;g('fb-status-text').textContent=text;}
-async function fbSave(rec){if(!useFirebase||!db)return;try{await db.collection('labdip').doc(String(rec.id)).set(rec)}catch(e){console.error(e)}}
-async function fbDel(id){if(!useFirebase||!db)return;try{await db.collection('labdip').doc(String(id)).delete()}catch(e){console.error(e)}}
+async function fbSave(rec){if(!useFirebase||!db)return;try{await setDoc(doc(db,'labdip',String(rec.id)),rec)}catch(e){console.error(e)}}
+async function fbDel(id){if(!useFirebase||!db)return;try{await deleteDoc(doc(db,'labdip',String(id)))}catch(e){console.error(e)}}
 
 // ── 로컬 ──────────────────────────────────────────────────────────
 function saveLocal(){try{localStorage.setItem('labdip_v3',JSON.stringify({data,nextId}))}catch{}}
@@ -630,41 +618,31 @@ function renderSortTags(){
 function getSorted(rows){if(!sortKeys.length)return rows;return[...rows].sort((a,b)=>{for(const{key,dir}of sortKeys){const va=(a[key]||'').toLowerCase(),vb=(b[key]||'').toLowerCase();if(va<vb)return dir==='asc'?-1:1;if(va>vb)return dir==='asc'?1:-1;}return 0;});}
 
 // ── 필터 (드롭다운) ──────────────────────────────────────────────
-var DD_COLS = ['brand','season','item','colorname','colorcode','ldip','factory','status'];
-var ddSelected = {};
-DD_COLS.forEach(function(c){ ddSelected[c] = null; });
+const DD_COLS=['brand','season','item','colorname','colorcode','ldip','factory','status'];
+const ddSelected={};
+DD_COLS.forEach(c=>{ddSelected[c]=null;});
 
-function getFiltered(){
-  return getFilteredExcept(null);
-}
+function getFiltered(){return getFilteredExcept(null);}
 function getFilteredExcept(exc){
-  var q = g('search').value.toLowerCase();
-  return data.filter(function(r){
-    var mQ = !q || [r.brand,r.designer,r.colorname,r.item,r.ldip].some(function(v){ return (v||'').toLowerCase().indexOf(q)>=0; });
-    if(!mQ) return false;
-    for(var i=0;i<DD_COLS.length;i++){
-      var c=DD_COLS[i];
-      if(c===exc) continue;
-      var sel=ddSelected[c];
-      if(sel===null) continue;
-      if(!sel.has((r[c]||'').trim())) return false;
+  const q=g('search').value.toLowerCase();
+  return data.filter(r=>{
+    const mQ=!q||[r.brand,r.designer,r.colorname,r.item,r.ldip].some(v=>(v||'').toLowerCase().includes(q));
+    if(!mQ)return false;
+    for(const c of DD_COLS){
+      if(c===exc)continue;
+      const sel=ddSelected[c];
+      if(sel===null)continue;
+      if(!sel.has((r[c]||'').trim()))return false;
     }
     return true;
   });
 }
 function updateHeaderFilters(){
-  DD_COLS.forEach(function(col){
-    var btn=g('hf-'+col+'-btn');
-    if(!btn) return;
-    var sel=ddSelected[col];
-    if(sel===null){
-      btn.innerHTML='전체 <span style="font-size:7px;opacity:.5">▼</span>';
-      btn.classList.remove('active');
-    } else {
-      var arr=[...sel];
-      btn.innerHTML=(arr.length===1?arr[0]:arr.length+'개 선택')+' <span style="font-size:7px;opacity:.5">▼</span>';
-      btn.classList.add('active');
-    }
+  DD_COLS.forEach(col=>{
+    const btn=g('hf-'+col+'-btn');if(!btn)return;
+    const sel=ddSelected[col];
+    if(sel===null){btn.innerHTML='전체 <span style="font-size:7px;opacity:.5">▼</span>';btn.classList.remove('active');}
+    else{const arr=[...sel];btn.innerHTML=(arr.length===1?arr[0]:arr.length+'개 선택')+' <span style="font-size:7px;opacity:.5">▼</span>';btn.classList.add('active');}
   });
 }
 
@@ -936,7 +914,7 @@ function debouncedRender(){
   inputTimer=setTimeout(renderTable,250);
 }
 g('search').addEventListener('input',debouncedRender);
-initDdButtons();
+// 드롭다운으로 교체됨
 g('tbody').addEventListener('click',e=>{
   const btn=e.target.closest('.ab');if(!btn)return;
   const id=parseInt(btn.getAttribute('data-id'));
@@ -952,117 +930,120 @@ else{loadLocal();refresh();}
 setTimeout(syncHScroll,200);
 
 // ── 엑셀형 드롭다운 필터 ──────────────────────────────────────────
-var activeDdCol = null;
+let activeDdCol = null;
 
-function ddApply() {
-  var col = activeDdCol;
-  if(!col) return;
-  var allCbs = Array.from(g('dd-list').querySelectorAll('.dd-cb'));
-  var checked = allCbs.filter(function(cb){ return cb.checked; }).map(function(cb){ return cb.value; });
-  ddSelected[col] = (checked.length === allCbs.length) ? null : new Set(checked);
-  closeDd();
-  updateHeaderFilters();
-  lastRowsKey = '';
-  refresh();
-}
-
-function closeDd() {
-  var dd = g('global-dd');
-  if(dd) dd.classList.remove('open');
-  var footer = g('dd-footer');
-  if(footer) footer.classList.remove('open');
-  activeDdCol = null;
-}
-
-function openDd(col, btnEl) {
-  if(activeDdCol === col && g('global-dd').classList.contains('open')) {
-    closeDd(); return;
-  }
+function ddOpenClose(col, btnEl) {
+  const dd = g('global-dd');
+  if(activeDdCol===col && dd.classList.contains('open')){ddClose();return;}
   activeDdCol = col;
-  var rect = btnEl.getBoundingClientRect();
-  var left = Math.min(rect.left, window.innerWidth - 200);
-  var dd = g('global-dd');
-  dd.style.top = (rect.bottom + 2) + 'px';
-  dd.style.left = left + 'px';
+  const rect = btnEl.getBoundingClientRect();
+  const left = Math.min(rect.left, window.innerWidth-200);
+  dd.style.top = (rect.bottom+2)+'px';
+  dd.style.left = left+'px';
   g('dd-search').value = '';
-  buildDdList(col);
+  ddBuildList(col);
   dd.classList.add('open');
-  setTimeout(function(){
-    var ddRect = dd.getBoundingClientRect();
-    var footer = g('dd-footer');
-    footer.style.top = ddRect.bottom + 'px';
-    footer.style.left = left + 'px';
-    footer.style.width = dd.offsetWidth + 'px';
-    footer.classList.add('open');
-    g('dd-search').focus();
-  }, 30);
+  setTimeout(()=>g('dd-search').focus(), 30);
 }
 
-function buildDdList(col) {
-  var searchEl = g('search');
-  var savedSearch = searchEl ? searchEl.value : '';
-  if(searchEl) searchEl.value = '';
-  var vals;
-  if(col === 'status') {
-    vals = ['Approved','Pending','Cancelled'];
+function ddClose() {
+  const dd=g('global-dd');
+  if(dd) dd.classList.remove('open');
+  activeDdCol=null;
+}
+
+function ddBuildList(col) {
+  const searchEl=g('search');
+  const saved=searchEl?searchEl.value:'';
+  if(searchEl) searchEl.value='';
+  let vals;
+  if(col==='status'){
+    vals=['Approved','Pending','Cancelled'];
   } else {
-    var rows = getFilteredExcept(col);
-    var seen = {}, vArr = [];
-    rows.forEach(function(r){ var v=(r[col]||'').trim(); if(v&&!seen[v]){seen[v]=1;vArr.push(v);} });
-    vArr.sort(function(a,b){ return a.localeCompare(b,'ko'); });
-    vals = vArr;
+    const rows=getFilteredExcept(col);
+    const seen={};vals=[];
+    rows.forEach(r=>{const v=(r[col]||'').trim();if(v&&!seen[v]){seen[v]=1;vals.push(v);}});
+    vals.sort((a,b)=>a.localeCompare(b,'ko'));
   }
-  if(searchEl) searchEl.value = savedSearch;
-  var sel = ddSelected[col];
-  var allChk = sel===null ? 'checked' : '';
-  var htm = '<div class="hf-dd-item all-item"><input type="checkbox" id="dd-all" '+allChk+'> 전체 선택</div>';
-  vals.forEach(function(v){
-    var chk = (sel===null || sel.has(v)) ? 'checked' : '';
-    var esc = v.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
-    htm += '<div class="hf-dd-item" data-val="'+esc+'"><input type="checkbox" class="dd-cb" value="'+esc+'" '+chk+'> '+esc+'</div>';
+  if(searchEl) searchEl.value=saved;
+  const sel=ddSelected[col];
+  const allChk=sel===null?'checked':'';
+  let htm=`<div class="hf-dd-item all-item"><input type="checkbox" id="dd-all" ${allChk}> 전체 선택</div>`;
+  vals.forEach(v=>{
+    const chk=(sel===null||sel.has(v))?'checked':'';
+    const esc=v.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
+    htm+=`<div class="hf-dd-item" data-val="${esc}"><input type="checkbox" class="dd-cb" value="${esc}" ${chk}> ${esc}</div>`;
   });
-  g('dd-list').innerHTML = htm;
+  g('dd-list').innerHTML=htm;
 }
 
-function initDdButtons() {
-  var cols = ['brand','season','item','colorname','colorcode','ldip','factory','status'];
-  cols.forEach(function(col){
-    var btn = g('hf-'+col+'-btn');
-    if(!btn) return;
-    btn.addEventListener('click', function(e){
-      e.stopPropagation();
-      openDd(col, btn);
+// DOMContentLoaded 보장
+document.addEventListener('DOMContentLoaded', function() {
+  // 버튼 이벤트
+  ['brand','season','item','colorname','colorcode','ldip','factory','status'].forEach(col=>{
+    const btn=g('hf-'+col+'-btn');
+    if(!btn)return;
+    btn.addEventListener('click',e=>{e.stopPropagation();ddOpenClose(col,btn);});
+  });
+
+  // 검색
+  g('dd-search').addEventListener('input',function(){
+    const q=this.value.toLowerCase();
+    g('dd-list').querySelectorAll('.hf-dd-item:not(.all-item)').forEach(el=>{
+      const v=el.getAttribute('data-val')||'';
+      el.style.display=(!q||v.toLowerCase().includes(q))?'':'none';
     });
   });
 
-  g('dd-search').addEventListener('input', function(){
-    var q = this.value.toLowerCase();
-    g('dd-list').querySelectorAll('.hf-dd-item:not(.all-item)').forEach(function(el){
-      var v = el.getAttribute('data-val') || '';
-      el.style.display = (!q || v.toLowerCase().indexOf(q) >= 0) ? '' : 'none';
-    });
-  });
-
-  g('dd-list').addEventListener('click', function(e){
-    if(e.target.id === 'dd-all'){
-      var cbs = g('dd-list').querySelectorAll('.dd-cb');
-      cbs.forEach(function(cb){
-        var item = cb.closest('.hf-dd-item');
-        if(!item || item.style.display !== 'none') cb.checked = e.target.checked;
+  // 전체선택
+  g('dd-list').addEventListener('click',function(e){
+    if(e.target.id==='dd-all'){
+      const cbs=g('dd-list').querySelectorAll('.dd-cb');
+      cbs.forEach(cb=>{
+        const item=cb.closest('.hf-dd-item');
+        if(!item||item.style.display!=='none') cb.checked=e.target.checked;
       });
     }
   });
 
-  document.addEventListener('click', function(e){
-    var dd = g('global-dd');
-    if(!dd || !dd.classList.contains('open')) return;
-    if(e.target.closest('#global-dd')) return;
-    if(e.target.closest('#dd-footer')) return;
-    if(e.target.closest('.hf-btn')) return;
-    closeDd();
+  // 확인 버튼
+  g('dd-apply-btn').addEventListener('click',function(e){
+    e.stopPropagation();
+    const col=activeDdCol;
+    if(!col)return;
+    const allCbs=[...g('dd-list').querySelectorAll('.dd-cb')];
+    const checked=allCbs.filter(cb=>cb.checked).map(cb=>cb.value);
+    ddSelected[col]=(checked.length===allCbs.length)?null:new Set(checked);
+    ddClose();
+    updateHeaderFilters();
+    lastRowsKey='';
+    refresh();
   });
-}
+
+  // 취소 버튼
+  g('dd-cancel-btn').addEventListener('click',function(e){
+    e.stopPropagation();
+    ddClose();
+  });
+
+  // 바깥 클릭
+  document.addEventListener('click',function(e){
+    const dd=g('global-dd');
+    if(!dd||!dd.classList.contains('open'))return;
+    if(e.target.closest('#global-dd'))return;
+    if(e.target.closest('.hf-btn'))return;
+    ddClose();
+  });
+});
 
 </script>
+<div id="global-dd">
+  <input class="hf-dd-search" id="dd-search" placeholder="검색...">
+  <div class="hf-dd-list" id="dd-list"></div>
+  <div class="hf-dd-footer">
+    <button class="hf-dd-btn" id="dd-cancel-btn">취소</button>
+    <button class="hf-dd-btn apply" id="dd-apply-btn">확인</button>
+  </div>
+</div>
 </body>
 </html>
