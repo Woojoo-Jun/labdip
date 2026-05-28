@@ -506,6 +506,14 @@ thead th { overflow: visible !important; }
   </div>
 </div>
 
+<div id="global-dd">
+  <input class="hf-dd-search" id="dd-search" placeholder="검색...">
+  <div class="hf-dd-list" id="dd-list"></div>
+</div>
+<div id="dd-footer" style="display:none;position:fixed;background:#fff;border:1px solid #b8b5ac;border-top:none;border-radius:0 0 6px 6px;z-index:99999;padding:5px 8px;justify-content:flex-end;gap:5px;">
+  <button id="dd-cancel-btn" style="padding:3px 10px;font-size:10px;border-radius:3px;border:.5px solid #c8c6bc;background:#fff;cursor:pointer;">취소</button>
+  <button id="dd-apply-btn" style="padding:3px 10px;font-size:10px;border-radius:3px;border:.5px solid #2D6A4F;background:#2D6A4F;color:#fff;cursor:pointer;">확인</button>
+</div>
 <script type="module">
 
 // ── 비밀번호 설정 ─────────────────────────────────────────────────
@@ -1084,13 +1092,5 @@ function buildDdList(col) {
 }
 
 </script>
-<div id="global-dd">
-  <input class="hf-dd-search" id="dd-search" placeholder="검색...">
-  <div class="hf-dd-list" id="dd-list"></div>
-</div>
-<div id="dd-footer" style="display:none;position:fixed;background:#fff;border:1px solid #b8b5ac;border-top:none;border-radius:0 0 6px 6px;z-index:99999;padding:5px 8px;display:none;justify-content:flex-end;gap:5px;">
-  <button id="dd-cancel-btn" style="padding:3px 10px;font-size:10px;border-radius:3px;border:.5px solid #c8c6bc;background:#fff;cursor:pointer;">취소</button>
-  <button id="dd-apply-btn" style="padding:3px 10px;font-size:10px;border-radius:3px;border:.5px solid #2D6A4F;background:#2D6A4F;color:#fff;cursor:pointer;">확인</button>
-</div>
 </body>
 </html>
