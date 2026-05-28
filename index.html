@@ -936,10 +936,10 @@ else{loadLocal();refresh();}
 setTimeout(syncHScroll,200);
 
 // ── 드롭다운 필터 ──────────────────────────────────────────────────
-let ddCol = null;
+window.window.ddCol = null;
 
 function ddOpen(col, btn) {
-  ddCol = col;
+  window.ddCol = col;
   const dd = g('global-dd');
   const rect = btn.getBoundingClientRect();
   dd.style.top = (rect.bottom+2)+'px';
@@ -972,13 +972,13 @@ function ddBuild(col) {
 }
 
 function ddApplyFn() {
-  if(!ddCol) return;
-  const col = ddCol;
+  const col = window.ddCol;
+  if(!col) return;
   const allCbs = [...g('dd-list').querySelectorAll('.dd-cb')];
   const checked = allCbs.filter(cb=>cb.checked).map(cb=>cb.value);
   ddSel[col] = checked.length===allCbs.length ? null : new Set(checked);
   g('global-dd').classList.remove('open');
-  ddCol = null;
+  window.ddCol = null;
   updateHeaderFilters();
   lastRowsKey='';
   refresh();
@@ -986,7 +986,7 @@ function ddApplyFn() {
 
 function ddCancelFn() {
   g('global-dd').classList.remove('open');
-  ddCol = null;
+  window.ddCol = null;
 }
 
 function ddInit() {
@@ -997,7 +997,7 @@ function ddInit() {
     btn.addEventListener('click', e=>{
       e.stopPropagation();
       const dd=g('global-dd');
-      if(ddCol===col && dd.classList.contains('open')){ddCancelFn();return;}
+      if(window.ddCol===col && dd.classList.contains('open')){ddCancelFn();return;}
       ddOpen(col,btn);
     });
   });
