@@ -977,8 +977,8 @@ function ddBuildList(col) {
   g('dd-list').innerHTML=htm;
 }
 
-// DOMContentLoaded 보장
-document.addEventListener('DOMContentLoaded', function() {
+// 버튼 이벤트 등록
+setTimeout(function() {
   // 버튼 이벤트
   ['brand','season','item','colorname','colorcode','ldip','factory','status'].forEach(col=>{
     const btn=g('hf-'+col+'-btn');
@@ -1034,7 +1034,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if(e.target.closest('.hf-btn'))return;
     ddClose();
   });
-});
+}, 500);
 
 </script>
 <div id="global-dd">
