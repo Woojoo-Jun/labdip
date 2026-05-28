@@ -618,9 +618,9 @@ function renderSortTags(){
 function getSorted(rows){if(!sortKeys.length)return rows;return[...rows].sort((a,b)=>{for(const{key,dir}of sortKeys){const va=(a[key]||'').toLowerCase(),vb=(b[key]||'').toLowerCase();if(va<vb)return dir==='asc'?-1:1;if(va>vb)return dir==='asc'?1:-1;}return 0;});}
 
 // ── 필터 (드롭다운) ──────────────────────────────────────────────
-const DD_COLS=['brand','season','item','colorname','colorcode','ldip','factory','status'];
-const ddSelected={};
-DD_COLS.forEach(c=>{ddSelected[c]=null;});
+window.DD_COLS=['brand','season','item','colorname','colorcode','ldip','factory','status'];
+window.ddSelected={};
+window.DD_COLS.forEach(c=>{window.window.ddSelected[c]=null;});
 
 function getFiltered(){return getFilteredExcept(null);}
 function getFilteredExcept(exc){
@@ -628,9 +628,9 @@ function getFilteredExcept(exc){
   return data.filter(r=>{
     const mQ=!q||[r.brand,r.designer,r.colorname,r.item,r.ldip].some(v=>(v||'').toLowerCase().includes(q));
     if(!mQ)return false;
-    for(const c of DD_COLS){
+    for(const c of window.DD_COLS){
       if(c===exc)continue;
-      const sel=ddSelected[c];
+      const sel=window.ddSelected[c];
       if(sel===null)continue;
       if(!sel.has((r[c]||'').trim()))return false;
     }
@@ -638,9 +638,9 @@ function getFilteredExcept(exc){
   });
 }
 function updateHeaderFilters(){
-  DD_COLS.forEach(col=>{
+  window.DD_COLS.forEach(col=>{
     const btn=g('hf-'+col+'-btn');if(!btn)return;
-    const sel=ddSelected[col];
+    const sel=window.ddSelected[col];
     if(sel===null){btn.innerHTML='전체 <span style="font-size:7px;opacity:.5">▼</span>';btn.classList.remove('active');}
     else{const arr=[...sel];btn.innerHTML=(arr.length===1?arr[0]:arr.length+'개 선택')+' <span style="font-size:7px;opacity:.5">▼</span>';btn.classList.add('active');}
   });
@@ -930,12 +930,12 @@ else{loadLocal();refresh();}
 setTimeout(syncHScroll,200);
 
 // ── 엑셀형 드롭다운 필터 ──────────────────────────────────────────
-let activeDdCol = null;
+window.activeDdCol = null;
 
 function ddOpenClose(col, btnEl) {
   const dd = g('global-dd');
-  if(activeDdCol===col && dd.classList.contains('open')){ddClose();return;}
-  activeDdCol = col;
+  if(window.activeDdCol===col && dd.classList.contains('open')){ddClose();return;}
+  window.activeDdCol = col;
   const rect = btnEl.getBoundingClientRect();
   const left = Math.min(rect.left, window.innerWidth-200);
   dd.style.top = (rect.bottom+2)+'px';
@@ -949,7 +949,7 @@ function ddOpenClose(col, btnEl) {
 function ddClose() {
   const dd=g('global-dd');
   if(dd) dd.classList.remove('open');
-  activeDdCol=null;
+  window.activeDdCol=null;
 }
 
 function ddBuildList(col) {
@@ -966,7 +966,7 @@ function ddBuildList(col) {
     vals.sort((a,b)=>a.localeCompare(b,'ko'));
   }
   if(searchEl) searchEl.value=saved;
-  const sel=ddSelected[col];
+  const sel=window.ddSelected[col];
   const allChk=sel===null?'checked':'';
   let htm=`<div class="hf-dd-item all-item"><input type="checkbox" id="dd-all" ${allChk}> 전체 선택</div>`;
   vals.forEach(v=>{
@@ -1009,11 +1009,11 @@ setTimeout(function() {
   // 확인 버튼
   g('dd-apply-btn').addEventListener('click',function(e){
     e.stopPropagation();
-    const col=activeDdCol;
+    const col=window.activeDdCol;
     if(!col)return;
     const allCbs=[...g('dd-list').querySelectorAll('.dd-cb')];
     const checked=allCbs.filter(cb=>cb.checked).map(cb=>cb.value);
-    ddSelected[col]=(checked.length===allCbs.length)?null:new Set(checked);
+    window.ddSelected[col]=(checked.length===allCbs.length)?null:new Set(checked);
     ddClose();
     updateHeaderFilters();
     lastRowsKey='';
