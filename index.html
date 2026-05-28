@@ -1021,7 +1021,7 @@ function initDdButtons() {
     refresh();
   });
 
-  document.addEventListener('click', function(e) {
+  document.addEventListener('mousedown', function(e) {
     var dd = g('global-dd');
     if(!dd || !dd.classList.contains('open')) return;
     if(!e.target.closest('#global-dd') && !e.target.closest('.hf-btn')) {
