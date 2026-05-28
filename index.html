@@ -1000,13 +1000,15 @@ function initDdButtons() {
 
   g('dd-apply-btn').addEventListener('click', function(e) {
     e.stopPropagation();
+    console.log('적용 클릭됨. activeDdCol:', activeDdCol);
     var col = activeDdCol;
-    if(!col) return;
+    if(!col) { console.log('col 없음!'); return; }
     var allCbs = Array.from(g('dd-list').querySelectorAll('.dd-cb'));
-    // 숨겨진 항목은 검색 UI용이므로 체크 상태 그대로 유지
-    // 모든 체크박스 상태를 읽어서 적용
+    console.log('전체 체크박스 수:', allCbs.length);
     var checked = allCbs.filter(function(cb){ return cb.checked; }).map(function(cb){ return cb.value; });
+    console.log('체크된 항목 수:', checked.length, '값:', checked);
     ddSelected[col] = (checked.length === allCbs.length) ? null : new Set(checked);
+    console.log('ddSelected['+col+']:', ddSelected[col]);
     closeDd();
     updateHeaderFilters();
     lastRowsKey = '';
