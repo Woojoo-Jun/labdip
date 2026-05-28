@@ -998,7 +998,7 @@ function initDdButtons() {
     }
   });
 
-  g('dd-apply-btn').addEventListener('click', function(e) {
+  g('dd-apply-btn').addEventListener('mousedown', function(e) {
     e.stopPropagation();
     var col = activeDdCol;
     if(!col) return;
@@ -1021,7 +1021,7 @@ function initDdButtons() {
     refresh();
   });
 
-  document.addEventListener('mousedown', function(e) {
+  document.addEventListener('click', function(e) {
     var dd = g('global-dd');
     if(!dd || !dd.classList.contains('open')) return;
     if(!e.target.closest('#global-dd') && !e.target.closest('.hf-btn')) {
