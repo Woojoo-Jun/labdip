@@ -975,6 +975,18 @@ function ddBuildList(col) {
     htm+=`<div class="hf-dd-item" data-val="${esc}"><input type="checkbox" class="dd-cb" value="${esc}" ${chk}> ${esc}</div>`;
   });
   g('dd-list').innerHTML=htm;
+  // 현재 체크상태 저장
+  window.ddSaveChecked = function() {
+    var cbs = Array.from(g('dd-list').querySelectorAll('.dd-cb'));
+    window.ddCheckedValues = cbs.filter(cb=>cb.checked).map(cb=>cb.value);
+    window.ddTotalCount = cbs.length;
+  };
+  // 체크박스 변경시마다 저장
+  g('dd-list').querySelectorAll('input').forEach(function(cb){
+    cb.addEventListener('change', function(){ if(window.ddSaveChecked) window.ddSaveChecked(); });
+  });
+  // 초기값 저장
+  window.ddSaveChecked();
 }
 
 // 버튼 이벤트 등록
@@ -1003,6 +1015,7 @@ setTimeout(function() {
         const item=cb.closest('.hf-dd-item');
         if(!item||item.style.display!=='none') cb.checked=e.target.checked;
       });
+      if(window.ddSaveChecked) window.ddSaveChecked();
     }
   });
 
@@ -1011,9 +1024,11 @@ setTimeout(function() {
     e.stopPropagation();
     const col=window.activeDdCol;
     if(!col)return;
-    const allCbs=[...g('dd-list').querySelectorAll('.dd-cb')];
-    const checked=allCbs.filter(cb=>cb.checked).map(cb=>cb.value);
-    window.ddSelected[col]=(checked.length===allCbs.length)?null:new Set(checked);
+    // ddCheckedValues: 드롭다운 열려있을 때 저장된 체크값 사용
+    if(window.ddSaveChecked) window.ddSaveChecked();
+    const checked = window.ddCheckedValues || [];
+    const total = window.ddTotalCount || 0;
+    window.ddSelected[col]=(checked.length===total)?null:new Set(checked);
     ddClose();
     updateHeaderFilters();
     lastRowsKey='';
