@@ -1015,6 +1015,7 @@ function initDdButtons() {
     var dd = g('global-dd');
     if(!dd || !dd.classList.contains('open')) return;
     if(e.target.closest('#global-dd')) return;
+    if(e.target.closest('#dd-footer')) return;
     if(e.target.closest('.hf-btn')) return;
     closeDd();
   });
@@ -1027,17 +1028,32 @@ function openDd(col, btnEl) {
   }
   activeDdCol = col;
   var rect = btnEl.getBoundingClientRect();
+  var left = Math.min(rect.left, window.innerWidth - 200);
   dd.style.top  = (rect.bottom + 2) + 'px';
-  dd.style.left = Math.min(rect.left, window.innerWidth - 200) + 'px';
+  dd.style.left = left + 'px';
   g('dd-search').value = '';
   buildDdList(col);
   dd.classList.add('open');
+  // footer 위치 설정
+  var footer = g('dd-footer');
+  if(footer) {
+    footer.style.display = 'flex';
+    footer.style.left = left + 'px';
+    // dd 높이 계산 후 위치 설정
+    setTimeout(function(){
+      var ddRect = dd.getBoundingClientRect();
+      footer.style.top = (ddRect.bottom) + 'px';
+      footer.style.width = dd.offsetWidth + 'px';
+    }, 10);
+  }
   setTimeout(function(){ g('dd-search').focus(); }, 30);
 }
 
 function closeDd() {
   var dd = g('global-dd');
   if(dd) dd.classList.remove('open');
+  var footer = g('dd-footer');
+  if(footer) footer.style.display = 'none';
   activeDdCol = null;
 }
 
@@ -1071,10 +1087,10 @@ function buildDdList(col) {
 <div id="global-dd">
   <input class="hf-dd-search" id="dd-search" placeholder="검색...">
   <div class="hf-dd-list" id="dd-list"></div>
-  <div class="hf-dd-footer">
-    <button class="hf-dd-btn" id="dd-cancel-btn">취소</button>
-    <button class="hf-dd-btn apply" id="dd-apply-btn">확인</button>
-  </div>
+</div>
+<div id="dd-footer" style="display:none;position:fixed;background:#fff;border:1px solid #b8b5ac;border-top:none;border-radius:0 0 6px 6px;z-index:99999;padding:5px 8px;display:none;justify-content:flex-end;gap:5px;">
+  <button id="dd-cancel-btn" style="padding:3px 10px;font-size:10px;border-radius:3px;border:.5px solid #c8c6bc;background:#fff;cursor:pointer;">취소</button>
+  <button id="dd-apply-btn" style="padding:3px 10px;font-size:10px;border-radius:3px;border:.5px solid #2D6A4F;background:#2D6A4F;color:#fff;cursor:pointer;">확인</button>
 </div>
 </body>
 </html>
